@@ -591,7 +591,16 @@ export const LeadsIntegrations = () => {
       }
     } catch (error: any) {
       console.error('Import error:', error);
-      toast.error(`Error importing spreadsheet "${spreadsheet.name}": ${error.message}`);
+      
+      // Determine if this is a "no data" error or a real error
+      const isNoDataError = error.message && error.message.includes('No data');
+      const status: 'no_data' | 'error' = isNoDataError ? 'no_data' : 'error';
+      
+      // Only show toast error for actual errors, not for "no data" case
+      if (!isNoDataError) {
+        toast.error(`Error importing spreadsheet "${spreadsheet.name}": ${error.message}`);
+      }
+      
       setImportResults({
         spreadsheetId: spreadsheet.id,
         spreadsheetName: spreadsheet.name,
@@ -600,7 +609,7 @@ export const LeadsIntegrations = () => {
         duplicates: 0,
         errors: [error.message],
         timestamp: new Date().toISOString(),
-        status: error.message.includes('No data') ? 'no_data' : 'error'
+        status
       });
     } finally {
       setImporting(false);
